@@ -58,6 +58,7 @@ calTrackRojo = addvars(calTrackRojo, NumCyclone);
 calTrackRojo = renamevars(calTrackRojo,"Num","NumByGroup");
 calTrackRojo = renamevars(calTrackRojo,"NumCyclone","Num");
 calTrackRojo = movevars(calTrackRojo,'Num','Before','Group');
+clear i countCycl GroupCase numCase NumCyclone time
 %% 
 %       2. ВАЛИДАЦИЯ ТОЧЕК КАЛЕНДАРЯ
 %
@@ -166,10 +167,10 @@ clear timeStart timeEnd
 addpath(genpath('/home/ramil/Program/Matlab/MATLAB Add-Ons'))
 
 %%%% 5.1 Календари с Valid и Non-Valid
-calValidKolstad = calKolstad((calKolstad.Valid == 1),:);
+% calValidKolstad = calKolstad((calKolstad.Valid == 1),:);
 calValidGolub = calSelectGolub((calSelectGolub.PercentValid >= 0.5),:);
 calValidRojo = calSelectRojo((calSelectRojo.PercentValid >= 0.5),:);
-
+calValidKolstad = calSelectKolstad;
 % calNonValidKolstad = calKolstad((calKolstad.Valid == 0),:);
 % calNonValidGolub = calSelectGolub((calSelectGolub.PercentValid < 0.5),:);
 % calNonValidRojo = calSelectRojo((calSelectRojo.PercentValid < 0.5),:);
@@ -295,6 +296,7 @@ calInterpGolub = InterpolData(calTermInterpGolub);
 [h,m,s] = hms(calInterpGolub.Time);
 calInterpGolub = addvars(calInterpGolub,m);
 calInterpGolub = calInterpGolub((calInterpGolub.m == 30),:);
+calInterpGolub = removevars(calInterpGolub,{'m'});
 clear calTermInterpGolub h m s
 
 calTermInterpRojo = InterpolTable(calValidRojo,calTrackRojo);
@@ -302,10 +304,19 @@ calInterpRojo = InterpolData(calTermInterpRojo);
 [h,m,s] = hms(calInterpRojo.Time);
 calInterpRojo = addvars(calInterpRojo,m);
 calInterpRojo = calInterpRojo((calInterpRojo.m == 30),:);
+calInterpRojo = removevars(calInterpRojo,{'m'});
 clear calTermInterpRojo 
 clear h m s
 
-%%
+% calTermInterpKolstad = InterpolTable(calValidKolstad,calTrackKolstad);
+% calInterpKolstad = InterpolData(calTermInterpKolstad);
+% [h,m,s] = hms(calInterpKolstad.Time);
+% calInterpKolstad = addvars(calInterpKolstad,m);
+% calInterpKolstad = calInterpKolstad((calInterpKolstad.m == 30),:);
+% calInterpKolstad = removevars(calInterpKolstad,{'m'});
+% clear calTermInterpRojo 
+% clear h m s
+ %%
 numCase = x.Num(1);
 startCell = 1;
 dt = minutes(30);
