@@ -293,20 +293,20 @@ title('Треки мезоциклонов по календарям Golubkin и
 %%%
 calTermInterpGolub = InterpolTable(calValidGolub,calTrackGolubkin);
 calInterpGolub = InterpolData(calTermInterpGolub);
-[h,m,s] = hms(calInterpGolub.Time);
-calInterpGolub = addvars(calInterpGolub,m);
-calInterpGolub = calInterpGolub((calInterpGolub.m == 30),:);
-calInterpGolub = removevars(calInterpGolub,{'m'});
-clear calTermInterpGolub h m s
+% [h,m,s] = hms(calInterpGolub.Time);
+% calInterpGolub = addvars(calInterpGolub,m);
+% calInterpGolub = calInterpGolub((calInterpGolub.m == 30),:);
+% calInterpGolub = removevars(calInterpGolub,{'m'});
+% clear calTermInterpGolub h m s
 
 calTermInterpRojo = InterpolTable(calValidRojo,calTrackRojo);
 calInterpRojo = InterpolData(calTermInterpRojo);
-[h,m,s] = hms(calInterpRojo.Time);
-calInterpRojo = addvars(calInterpRojo,m);
-calInterpRojo = calInterpRojo((calInterpRojo.m == 30),:);
-calInterpRojo = removevars(calInterpRojo,{'m'});
-clear calTermInterpRojo 
-clear h m s
+% [h,m,s] = hms(calInterpRojo.Time);
+% calInterpRojo = addvars(calInterpRojo,m);
+% calInterpRojo = calInterpRojo((calInterpRojo.m == 30),:);
+% calInterpRojo = removevars(calInterpRojo,{'m'});
+% clear calTermInterpRojo 
+% clear h m s
 
 % calTermInterpKolstad = InterpolTable(calValidKolstad,calTrackKolstad);
 % calInterpKolstad = InterpolData(calTermInterpKolstad);
@@ -635,7 +635,7 @@ end
 function z = InterpolData(x)
 numCase = x.Num(1);
 startCell = 1;
-dt = minutes(30);
+dt = minutes(180);
 z = timetable;
 
 for i = 1:size(x,1)
