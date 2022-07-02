@@ -19,7 +19,7 @@ clear h m s y month d
 
 
 %%
-numCase = 1;
+numCase = x.Num(1);
 numObs = 0;
 RowNum = 1;
 
