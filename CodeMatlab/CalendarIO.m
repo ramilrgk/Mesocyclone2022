@@ -59,6 +59,11 @@ calTrackRojo = renamevars(calTrackRojo,"Num","NumByGroup");
 calTrackRojo = renamevars(calTrackRojo,"NumCyclone","Num");
 calTrackRojo = movevars(calTrackRojo,'Num','Before','Group');
 clear i countCycl GroupCase numCase NumCyclone time
+
+%%%% Календарь STARS
+calTrackSTARSsouth = readtable('~/Documents/Work/IO_Practice/Data/PolarLow_tracks_South_2002_2011');
+calTrackSTARSnorth = readtable('~/Documents/Work/IO_Practice/Data/PolarLow_tracks_North_2002_2011');
+
 %% 
 %       2. ВАЛИДАЦИЯ ТОЧЕК КАЛЕНДАРЯ
 %
@@ -90,6 +95,7 @@ inKolstad = inpolygon(calKolstad.Longitude,calKolstad.Latitude,polygonLon,polygo
 inGolub = inpolygon(calTrackGolubkin.Longitude,calTrackGolubkin.Latitude,polygonLon,polygonLat);
 inRojo = inpolygon(calTrackRojo.Longitude,calTrackRojo.Latitude,polygonLon,polygonLat);
 inKolstadTrack = inpolygon(calTrackKolstad.Longitude,calTrackKolstad.Latitude,polygonLon,polygonLat);
+inSTARSTrack = inpo
 % Запись результата в таблицу и переименование
 if ismember('Valid',calKolstad.Properties.VariableNames) == 0 
 calKolstad = addvars(calKolstad,inKolstad);
