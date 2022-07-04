@@ -59,6 +59,49 @@ calTrackRojo = renamevars(calTrackRojo,"Num","NumByGroup");
 calTrackRojo = renamevars(calTrackRojo,"NumCyclone","Num");
 calTrackRojo = movevars(calTrackRojo,'Num','Before','Group');
 clear i countCycl GroupCase numCase NumCyclone time
+
+%%%% Календарь STARS
+calTrackSTARSsouth = readtable('~/Documents/Work/IO_Practice/Data/PolarLow_tracks_South_2002_2011');
+calTrackSTARSnorth = readtable('~/Documents/Work/IO_Practice/Data/PolarLow_tracks_North_2002_2011');
+
+
+rowNum = 1;
+for i=1:size(calTrackSTARSnorth,1)
+    if i == 1
+        calTermTrackSTARSnorth(rowNum,:) = calTrackSTARSnorth(i,:);
+        rowNum = rowNum + 1;
+        continue
+    end
+    
+    if calTrackSTARSnorth.Num(i) == calTrackSTARSnorth.Num(i-1)
+        if calTrackSTARSnorth.Day(i) == calTrackSTARSnorth.Day(i-1)
+            if calTrackSTARSnorth.Hour(i) == calTrackSTARSnorth.Hour(i-1)
+                if calTrackSTARSnorth.Latitude(i) == calTrackSTARSnorth.Latitude(i-1)
+                    continue
+                end
+            end 
+        end
+    end
+    calTermTrackSTARSnorth(rowNum,:) = calTrackSTARSnorth(i,:);
+    rowNum = rowNum + 1;
+end
+clear i rowNum
+
+calTrackSTARSnorth = calTermTrackSTARSnorth;
+calTrackSTARSnorth = timetableCreate(calTrackSTARSnorth);
+
+calTrackSTARSsouth = readtable('~/Documents/Work/IO_Practice/Data/PolarLow_tracks_South_2002_2011');
+calTrackSTARSsouth = timetableCreate(calTrackSTARSsouth);
+
+clear calTermTrackSTARSnorth
+
+
+calTrackNoer2019 = readtable('~/Documents/Work/IO_Practice/Data/IO_ERA5_pl_list2019.csv');
+Minute = zeros(size(calTrackNoer2019,1),1);
+calTrackNoer2019 = addvars(calTrackNoer2019,Minute);
+clear Minute
+
+calTrackNoer2019 = timetableCreate(calTrackNoer2019);
 %% 
 %       2. ВАЛИДАЦИЯ ТОЧЕК КАЛЕНДАРЯ
 %
@@ -90,6 +133,9 @@ inKolstad = inpolygon(calKolstad.Longitude,calKolstad.Latitude,polygonLon,polygo
 inGolub = inpolygon(calTrackGolubkin.Longitude,calTrackGolubkin.Latitude,polygonLon,polygonLat);
 inRojo = inpolygon(calTrackRojo.Longitude,calTrackRojo.Latitude,polygonLon,polygonLat);
 inKolstadTrack = inpolygon(calTrackKolstad.Longitude,calTrackKolstad.Latitude,polygonLon,polygonLat);
+inSTARSTrackNorth = inpolygon(calTrackSTARSnorth.Longitude,calTrackSTARSnorth.Latitude,polygonLon,polygonLat);
+inSTARSTrackSouth = inpolygon(calTrackSTARSsouth.Longitude,calTrackSTARSsouth.Latitude,polygonLon,polygonLat);
+inNoer2019 = inpolygon(calTrackNoer2019.Longitude,calTrackNoer2019.Latitude,polygonLon,polygonLat);
 % Запись результата в таблицу и переименование
 if ismember('Valid',calKolstad.Properties.VariableNames) == 0 
 calKolstad = addvars(calKolstad,inKolstad);
@@ -107,8 +153,21 @@ if ismember('Valid',calTrackKolstad.Properties.VariableNames) == 0
     calTrackKolstad = addvars(calTrackKolstad,inKolstadTrack);
     calTrackKolstad = renamevars(calTrackKolstad,"inKolstadTrack","Valid");
 end
+if ismember('Valid',calTrackSTARSnorth.Properties.VariableNames) == 0 
+    calTrackSTARSnorth = addvars(calTrackSTARSnorth,inSTARSTrackNorth);
+    calTrackSTARSnorth = renamevars(calTrackSTARSnorth,"inSTARSTrackNorth","Valid");
+end
+if ismember('Valid',calTrackSTARSsouth.Properties.VariableNames) == 0 
+    calTrackSTARSsouth = addvars(calTrackSTARSsouth,inSTARSTrackSouth);
+    calTrackSTARSsouth = renamevars(calTrackSTARSsouth,"inSTARSTrackSouth","Valid");
+end
+if ismember('Valid',calTrackNoer2019.Properties.VariableNames) == 0 
+calTrackNoer2019 = addvars(calTrackNoer2019,inNoer2019);
+calTrackNoer2019 = renamevars(calTrackNoer2019,"inNoer2019","Valid");
+end
 
-clear inKolstad inGolub inRojo i inKolstadTrack
+clear inKolstad inGolub inRojo i inKolstadTrack inSTARSTrackNorth...
+    inSTARSTrackSouth inNoer2019
 %%
 %       3. ОТБОР ТОЧЕК 
 % 
@@ -127,7 +186,9 @@ clear inKolstad inGolub inRojo i inKolstadTrack
 calSelectGolub = SelectMesocyclTable(calTrackGolubkin);
 calSelectRojo = SelectMesocyclTable(calTrackRojo);
 calSelectKolstad = SelectMesocyclTable(calTrackKolstad);
-
+calSelectSTARSnorth = SelectMesocyclTable(calTrackSTARSnorth);
+calSelectSTARSsouth = SelectMesocyclTable(calTrackSTARSsouth);
+calSelectNoer2019 = SelectMesocyclTable(calTrackNoer2019);
 %%
 %       4. Отбор случаев по времени
 %
@@ -156,7 +217,9 @@ timeEnd = datetime(2016,01,01,00,01,00);
 
 calSelectGolub = CutByTimes(calSelectGolub,timeStart,timeEnd);
 calSelectRojo = CutByTimes(calSelectRojo,timeStart,timeEnd);
-
+calSelectSTARSnorth = CutByTimes(calSelectSTARSnorth,timeStart,timeEnd);
+calSelectSTARSsouth = CutByTimes(calSelectSTARSsouth,timeStart,timeEnd);
+calSelectNoer2019 = CutByTimes(calSelectNoer2019,timeStart,timeEnd);
 clear timeStart timeEnd
 %% 
 %       5. Карты 
@@ -171,6 +234,12 @@ addpath(genpath('/home/ramil/Program/Matlab/MATLAB Add-Ons'))
 calValidGolub = calSelectGolub((calSelectGolub.PercentValid >= 0.5),:);
 calValidRojo = calSelectRojo((calSelectRojo.PercentValid >= 0.5),:);
 calValidKolstad = calSelectKolstad;
+calValidSTARSnorth = calSelectSTARSnorth((...
+    calSelectSTARSnorth.PercentValid >= 0.5),:);
+calValidSTARSsouth = calSelectSTARSsouth((...
+    calSelectSTARSsouth.PercentValid >= 0.5),:);
+calValidNoer2019 = calSelectNoer2019((calSelectNoer2019.PercentValid >= 0.5),:);
+    
 % calNonValidKolstad = calKolstad((calKolstad.Valid == 0),:);
 % calNonValidGolub = calSelectGolub((calSelectGolub.PercentValid < 0.5),:);
 % calNonValidRojo = calSelectRojo((calSelectRojo.PercentValid < 0.5),:);
@@ -179,8 +248,8 @@ calValidKolstad = calSelectKolstad;
 
 %%%% Инициализация карты
 clf
-% m_proj('Azimuthal Equal-Area','lon',-30,'lat',60,'rad',35,'rec','circle','rot',0);
-m_proj('Azimuthal Equal-Area','lon',-20,'lat',75,'rad',29,'rec','circle','rot',-90);
+m_proj('Azimuthal Equal-Area','lon',-30,'lat',60,'rad',35,'rec','circle','rot',0);
+% m_proj('Azimuthal Equal-Area','lon',-20,'lat',75,'rad',29,'rec','circle','rot',-90);
 m_grid('xlabeldir','end','ylabeldir','end','tickdir','out',...
     'xaxisLocation','middle','yaxisLocation','left',...
     'ytick',[90 75 60 45 30],'fontsize',9);
@@ -200,11 +269,11 @@ for i=1:size(calValidRojo,1)
         'marker','x','markersize',mksz,'color','r','LineWidth',1);
 end
 
-% Non-Valid Pangaea
-for i=1:size(calNonValidRojo,1)
-    m_line(calNonValidRojo.Longitude(i),calNonValidRojo.Latitude(i),...
-        'marker','x','markersize',mksz,'color','k','LineWidth',1);
-end
+% % Non-Valid Pangaea
+% for i=1:size(calNonValidRojo,1)
+%     m_line(calNonValidRojo.Longitude(i),calNonValidRojo.Latitude(i),...
+%         'marker','x','markersize',mksz,'color','k','LineWidth',1);
+% end
 
 % Valid Golub
 for i=1:size(calValidGolub,1)
@@ -212,22 +281,32 @@ for i=1:size(calValidGolub,1)
         'marker','+','markersize',mksz,'color','b','LineWidth',1);
 end
 
-% Non-Valid Golub
-for i=1:size(calNonValidGolub,1)
-    m_line(calNonValidGolub.Longitude(i),calNonValidGolub.Latitude(i),...
-        'marker','+','markersize',mksz,'color','k','LineWidth',1);
-end
+% % Non-Valid Golub
+% for i=1:size(calNonValidGolub,1)
+%     m_line(calNonValidGolub.Longitude(i),calNonValidGolub.Latitude(i),...
+%         'marker','+','markersize',mksz,'color','k','LineWidth',1);
+% end
 
 % Valid Kolstad
 for i=1:size(calValidKolstad,1)
     m_line(calValidKolstad.Longitude(i),calValidKolstad.Latitude(i),...
-        'marker','s','markersize',mksz,'color','g','LineWidth',1);
+        'marker','s','markersize',mksz,'color','m','LineWidth',1);
 end    
 
-% Non-Valid Kolstad
-for i=1:size(calNonValidKolstad,1)
-    m_line(calNonValidKolstad.Longitude(i),calNonValidKolstad.Latitude(i),...
-        'marker','s','markersize',mksz,'color','k','LineWidth',1);
+% % Non-Valid Kolstad
+% for i=1:size(calNonValidKolstad,1)
+%     m_line(calNonValidKolstad.Longitude(i),calNonValidKolstad.Latitude(i),...
+%         'marker','s','markersize',mksz,'color','k','LineWidth',1);
+% end
+
+for i=1:size(calValidSTARSnorth,1)
+    m_line(calValidSTARSnorth.Longitude(i),calValidSTARSnorth.Latitude(i),...
+        'marker','d','markersize',mksz,'color','g','LineWidth',1);
+end
+
+for i=1:size(calValidSTARSsouth,1)
+    m_line(calValidSTARSsouth.Longitude(i),calValidSTARSsouth.Latitude(i),...
+        'marker','d','markersize',mksz,'color','g','LineWidth',1);
 end
 
 title('Граница модельной области и мезоциклоны по календарям', 'FontSize',15);
@@ -285,9 +364,45 @@ DotLon = [];
 DotLat = [];
 end
 
-title('Треки мезоциклонов по календарям Golubkin и Rojo', 'FontSize',15);
+for i=1:size(calValidSTARSnorth,1)
+TrackLon = calTrackSTARSnorth.Longitude((calValidSTARSnorth.StartCell(i)):(calValidSTARSnorth.EndCell(i)));
+TrackLat = calTrackSTARSnorth.Latitude((calValidSTARSnorth.StartCell(i)):(calValidSTARSnorth.EndCell(i)));
+TrackLon = TrackLon';
+TrackLat = TrackLat';
+m_line(TrackLon,TrackLat,'color','g','linewi',0.5);
 
+DotLon = calTrackSTARSnorth.Longitude(calValidSTARSnorth.EndCell(i));
+DotLat = calTrackSTARSnorth.Latitude(calValidSTARSnorth.EndCell(i));
+m_line(DotLon,DotLat,...
+    'marker','.','markersize',10,'color','g','LineWidth',1);
 
+TrackLon = [];
+TrackLat = [];
+DotLon = [];
+DotLat = [];
+end
+
+for i=1:size(calValidSTARSsouth,1)
+TrackLon = calTrackSTARSsouth.Longitude((calValidSTARSsouth.StartCell(i)):(calValidSTARSsouth.EndCell(i)));
+TrackLat = calTrackSTARSsouth.Latitude((calValidSTARSsouth.StartCell(i)):(calValidSTARSsouth.EndCell(i)));
+TrackLon = TrackLon';
+TrackLat = TrackLat';
+m_line(TrackLon,TrackLat,'color','g','linewi',0.5);
+
+DotLon = calTrackSTARSsouth.Longitude(calValidSTARSsouth.EndCell(i));
+DotLat = calTrackSTARSsouth.Latitude(calValidSTARSsouth.EndCell(i));
+m_line(DotLon,DotLat,...
+    'marker','.','markersize',10,'color','g','LineWidth',1);
+
+TrackLon = [];
+TrackLat = [];
+DotLon = [];
+DotLat = [];
+end
+
+title('Треки мезоциклонов по календарям Golubkin, Rojo и STARS', 'FontSize',15);
+
+clear DotLat DotLon mksz i TrackLat TrackLon
 %%
 %       6. Интерполяция 
 %%%
@@ -297,7 +412,8 @@ calInterpGolub = InterpolData(calTermInterpGolub);
 % calInterpGolub = addvars(calInterpGolub,m);
 % calInterpGolub = calInterpGolub((calInterpGolub.m == 30),:);
 % calInterpGolub = removevars(calInterpGolub,{'m'});
-% clear calTermInterpGolub h m s
+clear calTermInterpGolub 
+% clear h m s
 
 calTermInterpRojo = InterpolTable(calValidRojo,calTrackRojo);
 calInterpRojo = InterpolData(calTermInterpRojo);
@@ -305,7 +421,34 @@ calInterpRojo = InterpolData(calTermInterpRojo);
 % calInterpRojo = addvars(calInterpRojo,m);
 % calInterpRojo = calInterpRojo((calInterpRojo.m == 30),:);
 % calInterpRojo = removevars(calInterpRojo,{'m'});
-% clear calTermInterpRojo 
+clear calTermInterpRojo 
+% clear h m s
+
+calTermInterpSTARSnorth = InterpolTable(calValidSTARSnorth,calTrackSTARSnorth);
+calInterpSTARSnorth = InterpolData(calTermInterpSTARSnorth);
+% [h,m,s] = hms(calInterpSTARSnorth.Time);
+% calInterpSTARSnorth = addvars(calInterpSTARSnorth,m);
+% calInterpSTARSnorth = calInterpSTARSnorth((calInterpSTARSnorth.m == 30),:);
+% calInterpSTARSnorth = removevars(calInterpSTARSnorth,{'m'});
+clear calTermInterpSTARSnorth 
+% clear h m s
+
+calTermInterpSTARSsouth = InterpolTable(calValidSTARSsouth,calTrackSTARSsouth);
+calInterpSTARSsouth = InterpolData(calTermInterpSTARSsouth);
+% [h,m,s] = hms(calInterpSTARSsouth.Time);
+% calInterpSTARSsouth = addvars(calInterpSTARSsouth,m);
+% calInterpSTARSsouth = calInterpSTARSsouth((calInterpSTARSsouth.m == 30),:);
+% calInterpSTARSsouth = removevars(calInterpSTARSsouth,{'m'});
+clear calTermInterpSTARSsouth
+% clear h m s
+
+calTermInterpNoer2019 = InterpolTable(calValidNoer2019,calTrackNoer2019);
+calInterpNoer2019 = InterpolData(calTermInterpNoer2019);
+% [h,m,s] = hms(calInterpNoer2019.Time);
+% calInterpNoer2019 = addvars(calInterpNoer2019,m);
+% calInterpNoer2019 = calInterpNoer2019((calInterpNoer2019.m == 30),:);
+% calInterpNoer2019 = removevars(calInterpNoer2019,{'m'});
+clear calTermInterpNoer2019 
 % clear h m s
 
 % calTermInterpKolstad = InterpolTable(calValidKolstad,calTrackKolstad);
@@ -363,9 +506,29 @@ clear numCase startCell dt TermTab TermIntTab
 % 
 % 
 
+% function z = InterpolData(x)
+numCase = x.Num(1);
+startCell = 1;
+dt = minutes(30);
+z = timetable;
 
+for i = 1:size(x,1)
+    if x.Num(i) == numCase
+        continue
+    else
+        endCell = i-1;
+        numCase = x.Num(i);
+        TermTab = x(startCell:endCell,:);
+%         TermTab = sortrows(TermTab,'Time','ascend');
+        TermIntTab = retime(TermTab,'regular','linear','TimeStep',dt);
+        z = [z;TermIntTab];
+        TermTab = [];
+        TermIntTab = [];
+        startCell = i;
+    end    
+end
 
-
+% end
 
 
 
