@@ -6,13 +6,18 @@ clear polygonLat polygonLon borderLat borderLon cal calTermInterpGolub ...
 
 cutNAAD_Rojo = createCutNAADtable(calInterpRojo);
 cutNAAD_Golub = createCutNAADtable(calInterpGolub);
+cutNAAD_STARSnorth = createCutNAADtable(calInterpSTARSnorth);
+cutNAAD_STARSsouth = createCutNAADtable(calInterpSTARSsouth);
+cutNAAD_Noer2019 = createCutNAADtable(calInterpNoer2019);
 
-
-
-
-
-
-
+%%
+cd OutputTable/CutNAADtab/
+writematrix(cutNAAD_Rojo,'NAADcutRojo.txt','Delimiter',' ');
+writematrix(cutNAAD_Golub,'NAADcutGolub.txt','Delimiter',' ');
+writematrix(cutNAAD_STARSnorth,'NAADcutSTARSnorth.txt','Delimiter',' ');
+writematrix(cutNAAD_STARSsouth,'NAADcutSTARSsouth.txt','Delimiter',' ');
+writematrix(cutNAAD_Noer2019,'NAADcutNoer2019.txt','Delimiter',' ');
+cd ../../
 
 
 

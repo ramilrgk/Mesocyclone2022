@@ -127,7 +127,7 @@ borderLon(1,2) = -72;   % З
 
 % Здесь используется моя функция создающая полигон ддомена. См. раздел ФУНКЦИИ
 [polygonLat,polygonLon] = createSimplePolygon(borderLat,borderLon);
-%%
+%
 %%%% 2.2. Валидация
 inKolstad = inpolygon(calKolstad.Longitude,calKolstad.Latitude,polygonLon,polygonLat);
 inGolub = inpolygon(calTrackGolubkin.Longitude,calTrackGolubkin.Latitude,polygonLon,polygonLat);
