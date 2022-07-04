@@ -95,6 +95,13 @@ calTrackSTARSsouth = timetableCreate(calTrackSTARSsouth);
 
 clear calTermTrackSTARSnorth
 
+
+calTrackNoer2019 = readtable('~/Documents/Work/IO_Practice/Data/IO_ERA5_pl_list2019.csv');
+Minute = zeros(size(calTrackNoer2019,1),1);
+calTrackNoer2019 = addvars(calTrackNoer2019,Minute);
+clear Minute
+
+calTrackNoer2019 = timetableCreate(calTrackNoer2019);
 %% 
 %       2. ВАЛИДАЦИЯ ТОЧЕК КАЛЕНДАРЯ
 %
@@ -128,6 +135,7 @@ inRojo = inpolygon(calTrackRojo.Longitude,calTrackRojo.Latitude,polygonLon,polyg
 inKolstadTrack = inpolygon(calTrackKolstad.Longitude,calTrackKolstad.Latitude,polygonLon,polygonLat);
 inSTARSTrackNorth = inpolygon(calTrackSTARSnorth.Longitude,calTrackSTARSnorth.Latitude,polygonLon,polygonLat);
 inSTARSTrackSouth = inpolygon(calTrackSTARSsouth.Longitude,calTrackSTARSsouth.Latitude,polygonLon,polygonLat);
+inNoer2019 = inpolygon(calTrackNoer2019.Longitude,calTrackNoer2019.Latitude,polygonLon,polygonLat);
 % Запись результата в таблицу и переименование
 if ismember('Valid',calKolstad.Properties.VariableNames) == 0 
 calKolstad = addvars(calKolstad,inKolstad);
@@ -153,8 +161,13 @@ if ismember('Valid',calTrackSTARSsouth.Properties.VariableNames) == 0
     calTrackSTARSsouth = addvars(calTrackSTARSsouth,inSTARSTrackSouth);
     calTrackSTARSsouth = renamevars(calTrackSTARSsouth,"inSTARSTrackSouth","Valid");
 end
+if ismember('Valid',calTrackNoer2019.Properties.VariableNames) == 0 
+calTrackNoer2019 = addvars(calTrackNoer2019,inNoer2019);
+calTrackNoer2019 = renamevars(calTrackNoer2019,"inNoer2019","Valid");
+end
 
-clear inKolstad inGolub inRojo i inKolstadTrack inSTARSTrackNorth inSTARSTrackSouth
+clear inKolstad inGolub inRojo i inKolstadTrack inSTARSTrackNorth...
+    inSTARSTrackSouth inNoer2019
 %%
 %       3. ОТБОР ТОЧЕК 
 % 
@@ -175,6 +188,7 @@ calSelectRojo = SelectMesocyclTable(calTrackRojo);
 calSelectKolstad = SelectMesocyclTable(calTrackKolstad);
 calSelectSTARSnorth = SelectMesocyclTable(calTrackSTARSnorth);
 calSelectSTARSsouth = SelectMesocyclTable(calTrackSTARSsouth);
+calSelectNoer2019 = SelectMesocyclTable(calTrackNoer2019);
 %%
 %       4. Отбор случаев по времени
 %
@@ -205,6 +219,7 @@ calSelectGolub = CutByTimes(calSelectGolub,timeStart,timeEnd);
 calSelectRojo = CutByTimes(calSelectRojo,timeStart,timeEnd);
 calSelectSTARSnorth = CutByTimes(calSelectSTARSnorth,timeStart,timeEnd);
 calSelectSTARSsouth = CutByTimes(calSelectSTARSsouth,timeStart,timeEnd);
+calSelectNoer2019 = CutByTimes(calSelectNoer2019,timeStart,timeEnd);
 clear timeStart timeEnd
 %% 
 %       5. Карты 
@@ -223,6 +238,7 @@ calValidSTARSnorth = calSelectSTARSnorth((...
     calSelectSTARSnorth.PercentValid >= 0.5),:);
 calValidSTARSsouth = calSelectSTARSsouth((...
     calSelectSTARSsouth.PercentValid >= 0.5),:);
+calValidNoer2019 = calSelectNoer2019((calSelectNoer2019.PercentValid >= 0.5),:);
     
 % calNonValidKolstad = calKolstad((calKolstad.Valid == 0),:);
 % calNonValidGolub = calSelectGolub((calSelectGolub.PercentValid < 0.5),:);
@@ -422,6 +438,8 @@ calInterpSTARSsouth = addvars(calInterpSTARSsouth,m);
 calInterpSTARSsouth = calInterpSTARSsouth((calInterpSTARSsouth.m == 30),:);
 calInterpSTARSsouth = removevars(calInterpSTARSsouth,{'m'});
 clear calTermInterpSTARSsouth h m s
+
+
 
 % calTermInterpKolstad = InterpolTable(calValidKolstad,calTrackKolstad);
 % calInterpKolstad = InterpolData(calTermInterpKolstad);
