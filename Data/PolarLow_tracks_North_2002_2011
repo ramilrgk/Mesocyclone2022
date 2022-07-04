@@ -1,4 +1,4 @@
- Num   Year Month Day Hour Min   Latitude      Longitude     Q  Diam 
+ Num   Year Month Day Hour Minute   Latitude      Longitude     Q  Diam 
   1   2002   01   12  01  00    74.54    28.01   0   250
   1   2002   01   12  01  00    74.54    28.01   0   250
   1   2002   01   12  02  00    74.51    29.44   0   250
