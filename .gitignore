@@ -2,4 +2,7 @@
 /Papers
 /Data/*xlsx#
 /*asv
-/Data/NHATL12_data
+/Data/NHATL12_data/*
+/Data/NHATL*
+/Data/NNATL12_data
+/Data/NNATL12_data/
