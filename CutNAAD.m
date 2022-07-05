@@ -50,8 +50,8 @@ function tableFin = createCutNAADtable(x)
         else
             numCase = x.Num(i);
             table(RowNum,1) = x.y(i-numObs);
-            table(RowNum,2) = x.numObs(i-1)+8;
-            table(RowNum,3) = x.numObs(i-numObs)-8;
+            table(RowNum,2) = x.numObs(i-numObs)-8;
+            table(RowNum,3) = x.numObs(i-1)+8;
             RowNum = RowNum + 1;
             numObs = 0;
         end        
@@ -61,25 +61,25 @@ function tableFin = createCutNAADtable(x)
     for i = 1:size(table,1)
 
         maxNumObs = maxNumObsCreate(table(i,1));
-        if table(i,3) < 0
+        if table(i,2) < 0
             maxNumObsPrev = maxNumObsCreate((table(i,1)-1));
 
             tableFin(RowNum,1) = table(i,1);
-            tableFin(RowNum,2) = table(i,2);
-            tableFin(RowNum,3) = 0;
-            RowNum = RowNum + 1;
-            tableFin(RowNum,1) = table(i,1) - 1;
-            tableFin(RowNum,2) = maxNumObsPrev;
-            tableFin(RowNum,3) = maxNumObsPrev + table(i,3);
-            RowNum = RowNum + 1;
-        elseif table(i,2) > maxNumObs
-            tableFin(RowNum,1) = table(i,1);
-            tableFin(RowNum,2) = maxNumObs;
+            tableFin(RowNum,2) = 0;
             tableFin(RowNum,3) = table(i,3);
             RowNum = RowNum + 1;
+            tableFin(RowNum,1) = table(i,1) - 1;
+            tableFin(RowNum,2) = maxNumObsPrev + table(i,2);
+            tableFin(RowNum,3) = maxNumObsPrev;
+            RowNum = RowNum + 1;
+        elseif table(i,3) > maxNumObs
+            tableFin(RowNum,1) = table(i,1);
+            tableFin(RowNum,2) = table(i,2);
+            tableFin(RowNum,3) = maxNumObs;
+            RowNum = RowNum + 1;
             tableFin(RowNum,1) = table(i,1) + 1;
-            tableFin(RowNum,2) = table(i,2) - maxNumObs;
-            tableFin(RowNum,3) = 0;
+            tableFin(RowNum,2) = 0;
+            tableFin(RowNum,3) = table(i,3) - maxNumObs;
             RowNum = RowNum + 1;
         else
             tableFin(RowNum,1) = table(i,1);
