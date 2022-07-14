@@ -536,13 +536,12 @@ YearMonthNoer = YearMonthTableCreate(calInterpNoer2019);
 
 cd /home/ramil/Documents/Work/IO_Practice/OutputTable/YearMonthTable
 
-writematrix(YearMonthGolub,'YearMonthGolub.txt','Delimiter',' ')
-writematrix(YearMonthNoer,'YearMonthNoer.txt','Delimiter',' ')
-writematrix(YearMonthRojo,'YearMonthRojo.txt','Delimiter',' ')
-writematrix(YearMonthSTARSnorth,'YearMonthSTARSnorth.txt','Delimiter',' ')
-writematrix(YearMonthSTARSsouth,'YearMonthSTARSsouth.txt','Delimiter',' ')
+writematrix(,'YearMonthGol.txt','Delimiter',' ')
+writematrix(,'YearMonth.txt','Delimiter',' ')
+writematrix(,'YearMonth.txt','Delimiter',' ')
+writematrix(,'YearMonth.txt','Delimiter',' ')
+writematrix(,'YearMonth.txt','Delimiter',' ')
 
-cd ../../
 
 %%
 %           ФУНКЦИИ
