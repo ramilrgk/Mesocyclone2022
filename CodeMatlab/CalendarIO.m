@@ -106,6 +106,19 @@ calTrackNoer2019 = addvars(calTrackNoer2019,Minute);
 clear Minute
 
 calTrackNoer2019 = timetableCreate(calTrackNoer2019);
+
+
+
+
+
+
+
+
+
+
+
+
+
 %% 
 %       2. ВАЛИДАЦИЯ ТОЧЕК КАЛЕНДАРЯ
 %
@@ -172,6 +185,20 @@ end
 
 clear inKolstad inGolub inRojo i inKolstadTrack inSTARSTrackNorth...
     inSTARSTrackSouth inNoer2019
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 %%
 %       3. ОТБОР ТОЧЕК 
 % 
@@ -193,6 +220,20 @@ calSelectKolstad = SelectMesocyclTable(calTrackKolstad);
 calSelectSTARSnorth = SelectMesocyclTable(calTrackSTARSnorth);
 calSelectSTARSsouth = SelectMesocyclTable(calTrackSTARSsouth);
 calSelectNoer2019 = SelectMesocyclTable(calTrackNoer2019);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 %%
 %       4. Отбор случаев по времени
 %
@@ -225,6 +266,23 @@ calSelectSTARSnorth = CutByTimes(calSelectSTARSnorth,timeStart,timeEnd);
 calSelectSTARSsouth = CutByTimes(calSelectSTARSsouth,timeStart,timeEnd);
 calSelectNoer2019 = CutByTimes(calSelectNoer2019,timeStart,timeEnd);
 clear timeStart timeEnd
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 %% 
 %       5. Карты 
 %
@@ -247,6 +305,16 @@ calValidNoer2019 = calSelectNoer2019((calSelectNoer2019.PercentValid >= 0.5),:);
 % calNonValidKolstad = calKolstad((calKolstad.Valid == 0),:);
 % calNonValidGolub = calSelectGolub((calSelectGolub.PercentValid < 0.5),:);
 % calNonValidRojo = calSelectRojo((calSelectRojo.PercentValid < 0.5),:);
+
+
+
+
+
+
+
+
+
+
 
 %% 5.2 Карта точек мезоциклонов
 
@@ -314,6 +382,23 @@ for i=1:size(calValidSTARSsouth,1)
 end
 
 title('Граница модельной области и мезоциклоны по календарям', 'FontSize',15);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 %% 5.3. Карта треков мезоциклонов
@@ -407,8 +492,23 @@ end
 title('Треки мезоциклонов по календарям Golubkin, Rojo и STARS', 'FontSize',15);
 
 clear DotLat DotLon mksz i TrackLat TrackLon
-%%
-%       6. Интерполяция 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+%% 6. Интерполяция 
 %%%
 calTermInterpGolub = InterpolTable(calValidGolub,calTrackGolubkin);
 calInterpGolub = InterpolData(calTermInterpGolub);
@@ -460,90 +560,302 @@ clear h m s
 % calInterpKolstad = removevars(calInterpKolstad,{'m'});
 % clear calTermInterpRojo 
 % clear h m s
- %%
-numCase = x.Num(1);
-startCell = 1;
-dt = minutes(30);
-z = timetable;
 
-for i = 1:size(x,1)
-    if x.Num(i) == numCase
-        continue
-    else
-        endCell = i-1;
-        numCase = x.Num(i);
-        TermTab = x(startCell:endCell,:);
-        TermIntTab = retime(TermTab,'regular','linear','TimeStep',dt);
-        z = [z;TermIntTab];
-        TermTab = [];
-        TermIntTab = [];
-        startCell = i;
+
+
+
+
+
+
+%% 7. Нахождение пересекающихся случаев
+
+calInterpGolub = AddYearMonthDayToTable(calInterpGolub);
+calInterpNoer2019 = AddYearMonthDayToTable(calInterpNoer2019);
+calInterpRojo = AddYearMonthDayToTable(calInterpRojo);
+calInterpSTARSnorth = AddYearMonthDayToTable(calInterpSTARSnorth);
+calInterpSTARSsouth = AddYearMonthDayToTable(calInterpSTARSsouth);
+
+%%
+clear CrossTableRojo
+
+for i = 1:size(calInterpRojo,1)
+    termSTARSsouth = FindCrossYMDH(calInterpSTARSsouth,calInterpRojo,i);
+    if size(termSTARSsouth,1) > 0
+        for j = 1:size(termSTARSsouth,1)
+           diffLat = abs(calInterpRojo.Latitude(i) - termSTARSsouth.Latitude(j));
+           diffLon = abs(calInterpRojo.Longitude(i) - termSTARSsouth.Longitude(j));
+           if diffLat < 1.5
+           if diffLon < 1.5
+                NumSTARSsouth(i,1) = termSTARSsouth.Num(j);
+           end   
+           end  
+        end    
     end    
-end
-clear numCase startCell dt TermTab TermIntTab
+    
+
+    termSTARSnorth = FindCrossYMDH(calInterpSTARSnorth,calInterpRojo,i);
+    if size(termSTARSnorth,1) > 0
+        for j = 1:size(termSTARSnorth,1)
+           diffLat = abs(calInterpRojo.Latitude(i) - termSTARSnorth.Latitude(j));
+           diffLon = abs(calInterpRojo.Longitude(i) - termSTARSnorth.Longitude(j));
+           if diffLat < 1.5
+           if diffLon < 1.5
+                NumSTARSnorth(i,1) = termSTARSnorth.Num(j);
+           end   
+           end  
+        end    
+    end  
+
+    termNoer2019 = FindCrossYMDH(calInterpNoer2019,calInterpRojo,i);
+    if size(termNoer2019,1) > 0
+        for j = 1:size(termNoer2019,1)
+           diffLat = abs(calInterpRojo.Latitude(i) - termNoer2019.Latitude(j));
+           diffLon = abs(calInterpRojo.Longitude(i) - termNoer2019.Longitude(j));
+           if diffLat < 1.5
+           if diffLon < 1.5
+                NumNoer2019(i,1) = termNoer2019.Num(j);
+           end   
+           end  
+        end    
+    end  
+ 
+    termGolub = FindCrossYMDH(calInterpGolub,calInterpRojo,i);
+    if size(termGolub,1) > 0
+        for j = 1:size(termGolub,1)
+           diffLat = abs(calInterpRojo.Latitude(i) - termGolub.Latitude(j));
+           diffLon = abs(calInterpRojo.Longitude(i) - termGolub.Longitude(j));
+           if diffLat < 1.5
+           if diffLon < 1.5
+                NumGolub(i,1) = termGolub.Num(j);
+           end   
+           end  
+        end    
+    end  
+ 
+
+end     
+
+NumGolub(size(calInterpRojo,1),1) = 0;
+NumNoer2019(size(calInterpRojo,1),1) = 0;
+NumSTARSnorth(size(calInterpRojo,1),1) = 0;
+NumSTARSsouth(size(calInterpRojo,1),1) = 0;
+
+CrossTableRojo = calInterpRojo;
+CrossTableRojo = addvars(CrossTableRojo,NumGolub,NumNoer2019,NumSTARSnorth,NumSTARSsouth);
+CrossTableRojo = removevars(CrossTableRojo, {'Diam','Year','Month','Day','Hour'});
+CrossTableRojo = movevars(CrossTableRojo, 'NumGolub', 'Before', 'Latitude');
+CrossTableRojo = movevars(CrossTableRojo, 'NumNoer2019', 'Before', 'Latitude');
+CrossTableRojo = movevars(CrossTableRojo, 'NumSTARSnorth', 'Before', 'Latitude');
+CrossTableRojo = movevars(CrossTableRojo, 'NumSTARSsouth', 'Before', 'Latitude');
+CrossTableRojo.Properties.VariableNames{1} = 'NumRojo';
+
+
+clear termGolub termNoer2019 termSTARSnorth termSTARSsouth
+clear NumGolub NumNoer2019 NumSTARSnorth NumSTARSsouth i j
+
 
 
 %%
-% numCase = x.Num(67);
-% startCell = 67;
-% dt = minutes(30);
-% z = timetable;
-% 
-% for i = 67:size(x,1)
-%     if x.Num(i) == numCase
-%         continue
-%     else
-%         endCell = i-1;
-%         numCase = x.Num(i);
-%         TermTab = x(startCell:endCell,:);
-%         TermIntTab = retime(TermTab,'regular','linear','TimeStep',dt);
-%         z = [z;TermIntTab];
-%         TermTab = [];
-%         TermIntTab = [];
-%         startCell = i;
-%     end    
-% end
-% clear numCase startCell dt TermTab TermIntTab
-% 
-% 
+UniqueRojoSTARSnorth = calInterpSTARSnorth; 
+for i = 1:size(CrossTableRojo,1)
+    UniqueRojoSTARSnorth = UniqueRojoSTARSnorth((UniqueRojoSTARSnorth.Num ~= ...
+        CrossTableRojo.NumSTARSnorth(i)),:);
+end    
 
-% function z = InterpolData(x)
-numCase = x.Num(1);
-startCell = 1;
-dt = minutes(30);
-z = timetable;
+UniqueRojoSTARSsouth = calInterpSTARSsouth; 
+for i = 1:size(CrossTableRojo,1)
+    UniqueRojoSTARSsouth = UniqueRojoSTARSsouth((UniqueRojoSTARSsouth.Num ~= ...
+        CrossTableRojo.NumSTARSsouth(i)),:);
+end    
 
-for i = 1:size(x,1)
-    if x.Num(i) == numCase
-        continue
-    else
-        endCell = i-1;
-        numCase = x.Num(i);
-        TermTab = x(startCell:endCell,:);
-%         TermTab = sortrows(TermTab,'Time','ascend');
-        TermIntTab = retime(TermTab,'regular','linear','TimeStep',dt);
-        z = [z;TermIntTab];
-        TermTab = [];
-        TermIntTab = [];
-        startCell = i;
-    end    
+UniqueRojoNoer2019 = calInterpNoer2019; 
+for i = 1:size(CrossTableRojo,1)
+    UniqueRojoNoer2019 = UniqueRojoNoer2019((UniqueRojoNoer2019.Num ~= ...
+        CrossTableRojo.NumNoer2019(i)),:);
+end    
+
+UniqueRojoGolub = calInterpGolub; 
+for i = 1:size(CrossTableRojo,1)
+    UniqueRojoGolub = UniqueRojoGolub((UniqueRojoGolub.Num ~= ...
+        CrossTableRojo.NumGolub(i)),:);
+end  
+
+
+
+%% 
+for i = 1:size(UniqueRojoNoer2019,1)
+    termSTARSsouth = FindCrossYMDH(UniqueRojoSTARSsouth,UniqueRojoNoer2019,i);
+    if size(termSTARSsouth,1) > 0
+        for j = 1:size(termSTARSsouth,1)
+           diffLat = abs(UniqueRojoNoer2019.Latitude(i) - termSTARSsouth.Latitude(j));
+           diffLon = abs(UniqueRojoNoer2019.Longitude(i) - termSTARSsouth.Longitude(j));
+           if diffLat < 2
+           if diffLon < 2
+                NumSTARSsouth(i,1) = termSTARSsouth.Num(j);
+           end   
+           end  
+        end    
+    end   
+
+    termSTARSnorth = FindCrossYMDH(UniqueRojoSTARSnorth,UniqueRojoNoer2019,i);
+    if size(termSTARSnorth,1) > 0
+        for j = 1:size(termSTARSnorth,1)
+           diffLat = abs(UniqueRojoNoer2019.Latitude(i) - termSTARSnorth.Latitude(j));
+           diffLon = abs(UniqueRojoNoer2019.Longitude(i) - termSTARSnorth.Longitude(j));
+           if diffLat < 2
+           if diffLon < 2
+                NumSTARSnorth(i,1) = termSTARSnorth.Num(j);
+           end   
+           end  
+        end    
+    end   
+    
+    termGolub = FindCrossYMDH(UniqueRojoGolub,UniqueRojoNoer2019,i);
+    if size(termGolub,1) > 0
+        for j = 1:size(termGolub,1)
+           diffLat = abs(UniqueRojoNoer2019.Latitude(i) - termGolub.Latitude(j));
+           diffLon = abs(UniqueRojoNoer2019.Longitude(i) - termGolub.Longitude(j));
+           if diffLat < 2
+           if diffLon < 2
+                NumGolub(i,1) = termGolub.Num(j);
+           end   
+           end  
+        end    
+    end   
+  
+end    
+
+NumGolub(size(UniqueRojoNoer2019,1),1) = 0;
+NumSTARSnorth(size(UniqueRojoNoer2019,1),1) = 0;
+NumSTARSsouth(size(UniqueRojoNoer2019,1),1) = 0;
+
+CrossTableNoer2019 = UniqueRojoNoer2019;
+CrossTableNoer2019 = removevars(CrossTableNoer2019, {'Diam','Year','Month','Day','Hour'});
+CrossTableNoer2019 = addvars(CrossTableNoer2019,NumGolub,NumSTARSnorth,NumSTARSsouth);
+CrossTableNoer2019.Properties.VariableNames{1} = 'NumNoer2019';
+
+clear termGolub termSTARSnorth termSTARSsouth
+clear NumGolub NumSTARSnorth NumSTARSsouth i j
+
+
+
+%%
+UniqueNoer2019STARSnorth = UniqueRojoSTARSnorth; 
+for i = 1:size(CrossTableNoer2019,1)
+    UniqueNoer2019STARSnorth = UniqueNoer2019STARSnorth((UniqueNoer2019STARSnorth.Num ~= ...
+        CrossTableNoer2019.NumSTARSnorth(i)),:);
+end    
+
+UniqueNoer2019STARSsouth = UniqueRojoSTARSsouth; 
+for i = 1:size(CrossTableNoer2019,1)
+    UniqueNoer2019STARSsouth = UniqueNoer2019STARSsouth((UniqueNoer2019STARSsouth.Num ~= ...
+        CrossTableNoer2019.NumSTARSsouth(i)),:);
+end    
+
+UniqueNoer2019Golub = UniqueRojoGolub; 
+for i = 1:size(CrossTableNoer2019,1)
+    UniqueNoer2019Golub = UniqueNoer2019Golub((UniqueNoer2019Golub.Num ~= ...
+        CrossTableNoer2019.NumGolub(i)),:);
+end  
+
+
+
+%% 
+termUniqueValidGolub = calValidGolub;
+for i = 1:size(UniqueNoer2019Golub,1)
+    termUniqueValidGolub = termUniqueValidGolub((termUniqueValidGolub.Num ~= ...
+        UniqueNoer2019Golub.Num(i)),:);  
 end
 
-% end
-
-% filepath = '/fdf/dfdf'
-tableYDZ = ncread(filepath,'z200');
-termTab = zeros(144,73,39);
-sumTab = zeros(144,73);
-
-for i = 1:91
-   termTab = tableYDZ(:,:,:,i);
-   for j = 1:39
-        sumTab = sumTab + termTab(:,:,j); 
-   end
-   filename = sprintf("sumTab_%d.dat",i);
-   dlmwrite(filename,sumTab);
-   termTab = zeros(144,73,39);
-   sumTab = zeros(144,73);
+UniqueValidGolub = calValidGolub;
+for i = 1:size(termUniqueValidGolub,1)
+    UniqueValidGolub = UniqueValidGolub((UniqueValidGolub.Num ~= ...
+        termUniqueValidGolub.Num(i)),:);
 end
 
+%%%%%%%%%%%%
+termUniqueValidSTARSnorth = calValidSTARSnorth;
+for i = 1:size(UniqueNoer2019STARSnorth,1)
+    termUniqueValidSTARSnorth = termUniqueValidSTARSnorth((termUniqueValidSTARSnorth.Num ~= ...
+        UniqueNoer2019STARSnorth.Num(i)),:);  
+end  
+
+UniqueValidSTARSnorth = calValidSTARSnorth;
+for i = 1:size(termUniqueValidSTARSnorth,1)
+    UniqueValidSTARSnorth = UniqueValidSTARSnorth((UniqueValidSTARSnorth.Num ~= ...
+        termUniqueValidSTARSnorth.Num(i)),:);
+end
+%%%%%%%%%%%%
+termUniqueValidSTARSsouth = calValidSTARSsouth;
+for i = 1:size(UniqueNoer2019STARSsouth,1)
+    termUniqueValidSTARSsouth = termUniqueValidSTARSsouth((termUniqueValidSTARSsouth.Num ~= ...
+        UniqueNoer2019STARSsouth.Num(i)),:);  
+end  
+
+UniqueValidSTARSsouth = calValidSTARSsouth;
+for i = 1:size(termUniqueValidSTARSsouth,1)
+    UniqueValidSTARSsouth = UniqueValidSTARSsouth((UniqueValidSTARSsouth.Num ~= ...
+        termUniqueValidSTARSsouth.Num(i)),:);
+end
+%%%%%%%%%%%%
+termUniqueValidNoer2019 = calValidNoer2019;
+for i = 1:size(CrossTableNoer2019,1)
+    termUniqueValidNoer2019 = termUniqueValidNoer2019((termUniqueValidNoer2019.Num ~= ...
+        CrossTableNoer2019.NumNoer2019(i)),:);  
+end  
+
+UniqueValidNoer2019 = calValidNoer2019;
+for i = 1:size(termUniqueValidNoer2019,1)
+    UniqueValidNoer2019 = UniqueValidNoer2019((UniqueValidNoer2019.Num ~= ...
+        termUniqueValidNoer2019.Num(i)),:);
+end
+%%%%%%%%%%%%
+termUniqueValidRojo = calValidRojo;
+for i = 1:size(CrossTableRojo,1)
+    termUniqueValidRojo = termUniqueValidRojo((termUniqueValidRojo.Num ~= ...
+        CrossTableRojo.NumRojo(i)),:);  
+end  
+
+UniqueValidRojo = calValidRojo;
+for i = 1:size(termUniqueValidRojo,1)
+    UniqueValidRojo = UniqueValidRojo((UniqueValidRojo.Num ~= ...
+        termUniqueValidRojo.Num(i)),:);
+end
+%%%%%%%%%%%%
+clear termUniqueValidGolub termUniqueValidNoer2019 termUniqueValidRojo ...
+    termUniqueValidSTARSnorth termUniqueValidSTARSsouth
+%% Добавить столбцы с годами и месяцами
+UniqueValidGolub = AddYearMonthDayToTable(UniqueValidGolub);
+UniqueValidNoer2019 = AddYearMonthDayToTable(UniqueValidNoer2019);
+UniqueValidSTARSnorth = AddYearMonthDayToTable(UniqueValidSTARSnorth);
+UniqueValidSTARSsouth = AddYearMonthDayToTable(UniqueValidSTARSsouth);
+UniqueValidRojo = AddYearMonthDayToTable(UniqueValidRojo);
+
+%% Гистограмма год-месяц
+YearMonth(:,1) = [UniqueValidGolub.Year' UniqueValidNoer2019.Year' ...
+    UniqueValidRojo.Year' UniqueValidSTARSnorth.Year' ...
+    UniqueValidSTARSsouth.Year']';
+YearMonth(:,2) = [UniqueValidGolub.Month' UniqueValidNoer2019.Month' ...
+    UniqueValidRojo.Month' UniqueValidSTARSnorth.Month' ...
+    UniqueValidSTARSsouth.Month']';
+
+clf
+histogram2(YearMonth(:,1),YearMonth(:,2),'DisplayStyle',"tile")
+mycolormap = customcolormap(linspace(0,1,11), {'#a60126','#d7302a','#f36e43','#faac5d','#fedf8d','#fcffbf','#d7f08b','#a5d96b','#68bd60','#1a984e','#006936'});
+% mycolormap = customcolormap(linspace(0,1,11), {'#a60026','#d83023','#f66e44','#faac5d','#ffdf93','#ffffbd','#def4f9','#abd9e9','#73add2','#4873b5','#313691'});
+% C=parula(10)
+% colormap(mycolormap(C));
+% colormap(flipud(C))
+% colorbar
+colormap(mycolormap);
+colorbar;
+title('Гистограмма наблюдений мезоциклонов по календарям STARS, Rojo, Golubkin и Noer', 'FontSize',13);
+
+yticks([1 2 3 4 5 6 7 8 9 10 11 12])
+yticklabels({'Jan' 'Feb' 'Mar' 'Apr' 'May' 'Jun' 'Jul' 'Aug' 'Sep' 'Oct' 'Nov' 'Dec'});
+xticks([2000 2001 2002 2003 2004 2005 2006 2007 2008 2009 2010 2011 ...
+    2012 2013 2014 2015]);
+
+
+
+%%
